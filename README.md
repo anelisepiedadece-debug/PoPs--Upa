@@ -29,7 +29,7 @@ Sua conta é **anelisepiedade**, com perfil de **administradora**. A equipe pode
 
 Depois da publicação, abra **Sou Anelise — configurar meu primeiro acesso** na tela de login. Você informa o código privado de ativação e escolhe uma senha de **12 a 128 caracteres**, diretamente no site. Ao concluir, sua conta é criada e o painel abre. Essa ativação só funciona uma vez por banco; depois a tela é fechada e ninguém pode criar outra administradora por ela.
 
-O código de ativação não é a sua senha. Ele comprova que você é a responsável pela implantação. Na publicação pelo Render, ele é gerado automaticamente como `ADMIN_SETUP_CODE` e fica no painel privado da hospedagem. Nunca o compartilhe em chat, GitHub ou links. A aplicação exige ao menos 32 caracteres para esse código. Sem essa configuração, o primeiro acesso permanece bloqueado.
+O código de ativação não é a sua senha. Ele comprova que você é a responsável pela implantação. O responsável pela instalação deve gerar esse código e configurá-lo como `ADMIN_SETUP_CODE` no ambiente privado do servidor. Nunca o compartilhe em chat, GitHub ou links. A aplicação exige ao menos 32 caracteres para esse código. Sem essa configuração, o primeiro acesso permanece bloqueado.
 
 Depois de entrar, vá a **Painel admin → Acesso da equipe** para cadastrar integrantes. Você pode suspender/reativar o acesso e redefinir senhas; essas ações encerram sessões anteriores. Sessões expiram após oito horas; cinco tentativas incorretas bloqueiam aquele login por quinze minutos. Só sua conta altera os POPs.
 
@@ -78,22 +78,17 @@ O comando `npm ci` prepara automaticamente o worker, fontes e recursos locais do
 
 Use a API de backup do SQLite ou uma parada controlada do serviço para copiar o banco e os PDFs de forma consistente. Teste a restauração. A pasta de dados deve ser persistida por uma única instância; não use SQLite em filesystem de rede nem várias réplicas independentes. A publicação deve manter todos os pedidos da aplicação ligados ao mesmo banco.
 
-## Colocar o site na internet pelo Render
+## Hospedagem sem orçamento
 
-O projeto inclui **render.yaml**, com servidor Node.js 24, HTTPS fornecido pela hospedagem, disco persistente privado de 1 GB, acervo inicialmente vazio e código de ativação gerado automaticamente. **A configuração foi preparada, mas nenhuma conta, hospedagem ou cobrança foi criada.** O plano Starter e o disco têm custo; confira os valores atuais antes de confirmar no painel.
+**O projeto deve usar apenas opções gratuitas.** A configuração anterior de hospedagem paga foi removida. Nenhum serviço foi contratado e nenhuma cobrança foi criada.
 
-1. Crie sua conta em https://render.com e conecte sua conta do GitHub.
-2. Use o repositório `anelisepiedadece-debug/PoPs--Upa`, na branch `main`, que contém o projeto e o arquivo `render.yaml` na raiz.
-3. No Render, escolha **New → Blueprint**, selecione esse repositório e revise o serviço e o disco descritos na configuração. Só confirme a implantação depois de concordar com o custo informado.
-4. Aguarde a compilação e a indicação de serviço ativo. Use o endereço HTTPS fornecido pelo próprio Render; não é obrigatório comprar um domínio para começar.
-5. No painel privado do serviço, em **Environment**, consulte o código gerado em `ADMIN_SETUP_CODE`. Abra o endereço público do site, escolha **Sou Anelise — configurar meu primeiro acesso**, informe esse código e defina sua senha. Não envie a senha ou o código aqui.
-6. Cadastre seus POPs e integrantes, valide acesso e upload e configure backups do banco e dos PDFs.
+A versão atual usa SQLite e arquivos privados em disco. Ela pode funcionar em um computador ou servidor que a unidade já tenha disponível, sem assinatura de hospedagem, com apoio da TI para HTTPS, acesso da equipe e backups. O equipamento precisa permanecer ligado; a disponibilidade depende da infraestrutura da unidade.
 
-O arquivo usa `POPS_DATA_DIR=/var/data/pops-upa` no disco persistente. Não remova esse disco ao atualizar o site. Use uma única instância, mantenha os cabeçalhos de origem/host no proxy e não habilite cache público das páginas autenticadas ou PDFs.
+Para colocar o site na internet usando planos gratuitos de serviços em nuvem, é necessário adaptar o banco, as sessões e os PDFs para armazenamento externo persistente. Uma alternativa a avaliar é Supabase para banco e arquivos privados, junto a uma hospedagem gratuita compatível com Next.js e com o uso institucional. Essa integração **ainda não está implementada**. Confira os limites, termos atuais e regras de suspensão dos planos antes de escolher; não habilite planos pagos ou cobrança automática.
 
-Para outra hospedagem, use Node.js 24, HTTPS e volume persistente, execute `npm ci`, `npm run build` e `npm run start`. Configure `ADMIN_SETUP_CODE` privado antes do primeiro acesso ou use o comando administrativo acima. A implementação atual não é adequada ao filesystem temporário da Vercel ou de funções serverless; para essas plataformas é necessário migrar o banco e os arquivos para serviços persistentes.
+Não basta selecionar um servidor gratuito com disco temporário: reinícios podem apagar contas e PDFs. O projeto atual também não está pronto para armazenamento temporário de funções serverless.
 
-Esta interface de onboarding não disponibiliza prévia web. O endereço público só existe depois que a hospedagem estiver efetivamente criada e validada. Publicar o ambiente do Codex não publica automaticamente o site para a equipe.
+O código está no GitHub, mas **ainda não há um endereço público do site**. Esta interface de onboarding não disponibiliza prévia web. Publicar o ambiente do Codex não publica automaticamente o site para a equipe.
 
 ## Estrutura
 
