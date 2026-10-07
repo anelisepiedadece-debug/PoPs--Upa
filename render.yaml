@@ -1,0 +1,25 @@
+# Configuração de publicação; não cria nem contrata serviços automaticamente.
+# Plano e disco persistente têm cobrança, a confirmar no painel do Render.
+services:
+  - type: web
+    name: pops-upa
+    runtime: node
+    plan: starter
+    buildCommand: npm ci --no-audit --no-fund && npm run build
+    startCommand: npm run start -- --port $PORT
+    healthCheckPath: /login
+    envVars:
+      - key: NODE_VERSION
+        value: "24"
+      - key: NEXT_TELEMETRY_DISABLED
+        value: "1"
+      - key: POPS_DATA_DIR
+        value: /var/data/pops-upa
+      - key: POPS_SEED_DEMO
+        value: "false"
+      - key: ADMIN_SETUP_CODE
+        generateValue: true
+    disk:
+      name: pops-documentos
+      mountPath: /var/data
+      sizeGB: 1
