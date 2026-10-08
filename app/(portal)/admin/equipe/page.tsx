@@ -5,7 +5,7 @@ import AdminHeader from "@/components/AdminHeader";
 import { MemberForm, PasswordForm } from "@/components/Forms";
 export default async function TeamPage() {
   await requireAdmin();
-  const users = listUsers();
+  const users = await listUsers();
   return (
     <>
       <AdminHeader

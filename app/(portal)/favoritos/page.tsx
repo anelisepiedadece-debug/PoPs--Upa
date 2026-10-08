@@ -14,7 +14,7 @@ export default async function FavoritesPage() {
         </div>
       </div>
       <Suspense fallback={<p>Carregando favoritos…</p>}>
-        <PopList pops={listPops()} userId={user.id} favorites />
+        <PopList pops={await listPops()} userId={user.id} favorites />
       </Suspense>
     </div>
   );

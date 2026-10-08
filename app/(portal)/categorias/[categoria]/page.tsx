@@ -29,7 +29,11 @@ export default async function CategoryPage({
         <QRCodeButton />
       </div>
       <Suspense fallback={<p>Carregando documentos…</p>}>
-        <PopList pops={listPops()} userId={user.id} category={categoria} />
+        <PopList
+          pops={await listPops()}
+          userId={user.id}
+          category={categoria}
+        />
       </Suspense>
     </div>
   );

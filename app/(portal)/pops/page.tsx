@@ -14,7 +14,7 @@ export default async function PopsPage() {
         </div>
       </div>
       <Suspense fallback={<p>Carregando acervo…</p>}>
-        <PopList pops={listPops()} userId={user.id} />
+        <PopList pops={await listPops()} userId={user.id} />
       </Suspense>
     </div>
   );

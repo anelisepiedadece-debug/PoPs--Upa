@@ -14,9 +14,9 @@ export async function POST(request: NextRequest) {
   } catch {
     return new Response("Requisição inválida", { status: 400 });
   }
-  const pop = getPop(id);
+  const pop = await getPop(id);
   if (!pop || (pop.status === "inactive" && user.role !== "admin"))
     return new Response("Não encontrado", { status: 404 });
-  incrementViews(id);
+  await incrementViews(id);
   return new Response(null, { status: 204 });
 }

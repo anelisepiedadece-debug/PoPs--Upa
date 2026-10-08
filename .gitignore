@@ -8,3 +8,5 @@ test-results/
 playwright-report/
 public/pdf.worker.min.mjs
 public/pdf-assets/
+
+.netlify/

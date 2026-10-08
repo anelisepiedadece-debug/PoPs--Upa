@@ -299,7 +299,7 @@ export function PopForm({ pop }: { pop?: Pop }) {
           <span className="step">02</span>
           <div>
             <h2>Arquivo PDF</h2>
-            <p>Envie a versão institucional aprovada. Máximo de 15 MB.</p>
+            <p>Envie a versão institucional aprovada. Máximo de 3 MB.</p>
           </div>
         </div>
         {pop?.pdfId && (
@@ -316,8 +316,8 @@ export function PopForm({ pop }: { pop?: Pop }) {
             accept="application/pdf,.pdf"
             onChange={(e) => {
               const file = e.target.files?.[0];
-              if (file && file.size > 15 * 1024 * 1024) {
-                setFileError("O PDF deve ter no máximo 15 MB.");
+              if (file && file.size > 3 * 1024 * 1024) {
+                setFileError("O PDF deve ter no máximo 3 MB.");
                 e.target.value = "";
               } else setFileError("");
             }}

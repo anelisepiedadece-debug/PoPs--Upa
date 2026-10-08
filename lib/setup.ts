@@ -1,21 +1,21 @@
 import { createHash, timingSafeEqual } from "node:crypto";
-import { createUser, db } from "./db.ts";
+import { hasAdministrator, createInitialAdmin } from "./db.ts";
 export const adminLogin = "anelisepiedade";
-export function hasAdmin() {
-  return Boolean(db().prepare("SELECT id FROM users WHERE role='admin'").get());
+export async function hasAdmin() {
+  return hasAdministrator();
 }
-export function setupAvailable() {
+export async function setupAvailable() {
   const code = process.env.ADMIN_SETUP_CODE;
   return Boolean(
-    code && code.length >= 32 && code.length <= 256 && !hasAdmin(),
+    code && code.length >= 32 && code.length <= 256 && !(await hasAdmin()),
   );
 }
-export function initializeAdmin(
+export async function initializeAdmin(
   code: string,
   password: string,
   confirmation: string,
 ) {
-  if (!setupAvailable())
+  if (!(await setupAvailable()))
     throw new Error("O primeiro acesso não está disponível.");
   if (
     code.length > 256 ||
@@ -29,17 +29,5 @@ export function initializeAdmin(
     throw new Error("As senhas precisam ser iguais.");
   if (password.length < 12 || password.length > 128)
     throw new Error("Escolha uma senha entre 12 e 128 caracteres.");
-  const database = db();
-  database.exec("BEGIN IMMEDIATE");
-  try {
-    if (hasAdmin()) throw new Error("A conta administrativa já foi criada.");
-    createUser("Anelise Piedade", adminLogin, password, "admin");
-    database
-      .prepare("DELETE FROM login_attempts WHERE key=?")
-      .run(createHash("sha256").update(adminLogin).digest("hex"));
-    database.exec("COMMIT");
-  } catch (e) {
-    database.exec("ROLLBACK");
-    throw e;
-  }
+  await createInitialAdmin(password);
 }

@@ -6,7 +6,7 @@ Site responsivo para consulta de Procedimentos Operacionais Padrão. Todos os do
 
 ## Tecnologias e requisitos
 
-Next.js 16, React 19, TypeScript, Tailwind CSS 4, Lucide Icons, QRCode, PDF.js, Zod e SQLite nativo do Node.js. Use **Node.js 24 ou superior** e npm. O banco e os PDFs são gravados em disco, fora da pasta pública. Não há serviços externos nem chaves de API obrigatórios.
+Next.js 16, React 19, TypeScript, Tailwind CSS 4, Lucide Icons, QRCode, PDF.js, Zod e SQLite nativo do Node.js. Use **Node.js 24 ou superior** e npm. O banco e os PDFs são gravados em disco, fora da pasta pública. O modo local não precisa de serviços externos. O modo de nuvem usa Supabase (PostgreSQL e bucket privado), somente pelo servidor via HTTPS; as contas continuam sendo gerenciadas pela administradora no site.
 
 ```bash
 cd /workspace/PoPs--Upa
@@ -51,7 +51,7 @@ A senha não é exibida nem colocada no histórico do terminal. Só é possível
 
 1. Entre com sua conta administrativa e abra **Painel admin → Cadastrar POP**.
 2. Preencha nome, código único, categoria, descrição, palavras-chave, versão, datas, elaboração e aprovação.
-3. Selecione um PDF de até 15 MB. O servidor verifica o cabeçalho e o fim do arquivo. Não envie dados de pacientes. Use arquivos institucionais confiáveis; a validação de formato não substitui antivírus.
+3. Selecione um PDF de até 3 MB. O servidor verifica o cabeçalho e o fim do arquivo. Não envie dados de pacientes. Use arquivos institucionais confiáveis; a validação de formato não substitui antivírus.
 4. Opcionalmente, transcreva as seções do documento aprovado para facilitar a leitura na página.
 5. Marque ativo para disponibilizar à equipe ou inativo para manter apenas no painel. Clique em **Salvar POP**.
 
@@ -72,23 +72,47 @@ O primeiro banco contém cinco **exemplos demonstrativos**, sem conteúdo clíni
 
 O comando `npm ci` prepara automaticamente o worker, fontes e recursos locais do leitor PDF em `public/`. Esses recursos são bibliotecas públicas; os documentos continuam privados e só são entregues após autenticação.
 
-## Armazenamento, configuração e backup
+## Publicação gratuita: Supabase + Netlify
 
-`POPS_DATA_DIR` define a pasta de dados (padrão: `./data`, ignorada pelo Git). É preciso acesso de escrita e **volume persistente**. Dentro dela ficam `pops.sqlite`, eventuais arquivos WAL/SHM e `documents/`. Não a coloque em `public/`. Permissões locais são restritas para arquivos novos. Variáveis de ambiente adicionais são descritas em `.env.example`; nunca commit senhas, bancos ou PDFs institucionais.
+A integração está implementada. **Ainda não há contas dos provedores conectadas nem endereço público.** Escolha somente os planos Free e confira os limites e termos atuais para uso institucional. Não habilite cobrança automática, planos pagos ou complementos pagos. Use os subdomínios gratuitos fornecidos pelos serviços; não é preciso comprar domínio.
 
-Use a API de backup do SQLite ou uma parada controlada do serviço para copiar o banco e os PDFs de forma consistente. Teste a restauração. A pasta de dados deve ser persistida por uma única instância; não use SQLite em filesystem de rede nem várias réplicas independentes. A publicação deve manter todos os pedidos da aplicação ligados ao mesmo banco.
+### 1. Banco e PDFs no Supabase
 
-## Hospedagem sem orçamento
+1. Crie uma conta em https://supabase.com e um projeto **Free**, dedicado a este site. Guarde a senha do banco em local privado; ela não é usada pelo aplicativo.
+2. No **SQL Editor**, execute o conteúdo de [supabase/setup.sql](supabase/setup.sql). Esse arquivo cria tabelas, uma função transacional, permissões e o bucket privado `pops-upa-private`. Pode ser executado novamente sem apagar os dados existentes.
+3. Nas configurações do projeto, obtenha a URL HTTPS do projeto e a chave legada **service_role**. Essa chave é administrativa e deve ficar somente no ambiente privado da hospedagem. Não a envie em chat, não a coloque no GitHub e não use variáveis `NEXT_PUBLIC_` para ela.
+4. O banco começa vazio. Não crie políticas públicas de leitura ou upload no bucket. O site verifica a sessão e o perfil antes de servir os PDFs; integrantes não recebem versões antigas ou documentos inativos.
 
-**O projeto deve usar apenas opções gratuitas.** A configuração anterior de hospedagem paga foi removida. Nenhum serviço foi contratado e nenhuma cobrança foi criada.
+### 2. Site no Netlify
 
-A versão atual usa SQLite e arquivos privados em disco. Ela pode funcionar em um computador ou servidor que a unidade já tenha disponível, sem assinatura de hospedagem, com apoio da TI para HTTPS, acesso da equipe e backups. O equipamento precisa permanecer ligado; a disponibilidade depende da infraestrutura da unidade.
+1. Crie uma conta em https://www.netlify.com, escolhendo o plano **Free**. Conecte sua conta GitHub e importe `anelisepiedadece-debug/PoPs--Upa`, branch `main`.
+2. O arquivo [netlify.toml](netlify.toml) configura Node.js 24, build e diretório `.next`. A integração automática do Netlify com Next.js fornece as funções do servidor. Não publique como um site estático/exportado.
+3. **Antes de publicar**, configure estas variáveis no painel privado, para o build e para as funções do site:
 
-Para colocar o site na internet usando planos gratuitos de serviços em nuvem, é necessário adaptar o banco, as sessões e os PDFs para armazenamento externo persistente. Uma alternativa a avaliar é Supabase para banco e arquivos privados, junto a uma hospedagem gratuita compatível com Next.js e com o uso institucional. Essa integração **ainda não está implementada**. Confira os limites, termos atuais e regras de suspensão dos planos antes de escolher; não habilite planos pagos ou cobrança automática.
+| Variável                    | Valor                                           |
+| --------------------------- | ----------------------------------------------- |
+| `AWS_LAMBDA_JS_RUNTIME`     | `nodejs24.x` (Node.js 24 nas funções)           |
+| `POPS_BACKEND`              | `supabase`                                      |
+| `SUPABASE_URL`              | URL HTTPS do seu projeto Supabase               |
+| `SUPABASE_SERVICE_ROLE_KEY` | Chave privada `service_role`                    |
+| `ADMIN_SETUP_CODE`          | Código privado aleatório de 32 a 256 caracteres |
 
-Não basta selecionar um servidor gratuito com disco temporário: reinícios podem apagar contas e PDFs. O projeto atual também não está pronto para armazenamento temporário de funções serverless.
+Gere o código de ativação em um gerenciador de senhas, ou com `openssl rand -hex 32` no seu próprio computador, e guarde-o de forma privada. Ele é diferente da senha que você escolherá no site.
 
-O código está no GitHub, mas **ainda não há um endereço público do site**. Esta interface de onboarding não disponibiliza prévia web. Publicar o ambiente do Codex não publica automaticamente o site para a equipe.
+4. Publique e aguarde o build. Abra o endereço HTTPS `.netlify.app` fornecido no painel. Escolha **Sou Anelise — configurar meu primeiro acesso**, informe o código privado e defina sua senha. Depois cadastre a equipe e os POPs.
+5. Confira o funcionamento real antes do uso institucional: faça upload de um PDF, consulte com uma conta de integrante, suspenda essa conta e confirme que o acesso foi encerrado. Reimplante o site e confira que as contas e o PDF continuam disponíveis. Reiniciar/publicar o site não deve apagar os dados do Supabase.
+
+**Limites:** cada PDF pode ter até **3 MB**, para manter o envio dentro dos limites das funções da hospedagem. Arquivos antigos permanecem no armazenamento e contam na cota. Os planos gratuitos têm cotas de banco, armazenamento, tráfego e execução; projetos/sites podem ficar indisponíveis ao exceder limites ou por regras de inatividade. Consulte os painéis e os termos atuais. Não há garantia de funcionamento gratuito ilimitado ou de disponibilidade contínua.
+
+A integração foi testada com PostgreSQL embutido e respostas HTTP simuladas do Supabase, além dos testes de navegador no modo local. O deploy real e o acesso ao Supabase do seu projeto dependem das contas e da configuração privada acima; ainda não foram validados. A interface de onboarding não fornece prévia web. Publicar o ambiente do Codex não publica o site para a equipe.
+
+### Dados e backups
+
+No modo de nuvem, contas, hashes das senhas, sessões, tentativas de login, POPs e histórico ficam no PostgreSQL; PDFs ficam no bucket privado. Nenhum dado institucional usa o disco temporário do Netlify. Com `POPS_BACKEND=supabase`, uma configuração ausente ou indisponível causa erro, sem criar um banco local vazio como alternativa.
+
+Faça exportações periódicas do banco e downloads privados dos objetos com ferramentas do Supabase/PostgreSQL; mantenha cópias protegidas e teste a restauração. Não dependa de backups automáticos como se estivessem incluídos no plano gratuito.
+
+No modo local (`POPS_BACKEND=local`), `POPS_DATA_DIR` define a pasta de dados (padrão `./data`, ignorada pelo Git). Ela contém `pops.sqlite`, WAL/SHM e `documents/`, e exige disco persistente de uma única instância. Use a API de backup do SQLite ou pare o serviço de forma controlada para copiar banco e PDFs consistentemente. A produção exige HTTPS. Dados de um banco local existente **não são migrados automaticamente** para o Supabase; preserve o backup e planeje a importação antes de trocar de modo em uma instalação em uso.
 
 ## Estrutura
 
@@ -101,12 +125,16 @@ app/
   actions.ts         # operações com validação e autorização no servidor
 components/          # navegação, cards, pesquisa, PDF, formulários e ações
 lib/
-  db.ts              # SQLite, persistência, contas e sessões
+  db.ts              # interface assíncrona local/nuvem, contas e sessões
+  local-db.ts        # SQLite para desenvolvimento ou servidor persistente
+  cloud.ts           # conexão HTTPS privada com Supabase
   auth.ts            # autorização no servidor
   documents.ts       # armazenamento privado de PDFs
   types.ts           # modelo, categorias e busca
 scripts/             # criação da administradora e execução isolada dos testes
-tests/               # testes de domínio e fluxos no navegador
+tests/               # testes locais, PostgreSQL e fluxos no navegador
+supabase/setup.sql   # banco, função transacional e bucket privado
+netlify.toml         # configuração de build gratuito
 ```
 
 ## Testes
@@ -119,15 +147,3 @@ npm run test:e2e
 ```
 
 Os testes de navegador usam Chromium instalado em `/usr/bin/chromium`. Para outro caminho, defina `CHROMIUM_PATH`. Alternativamente, instale Chromium com Playwright e ajuste o caminho. Os testes criam contas com senha aleatória em um banco temporário, executam desktop e mobile e removem esse banco ao terminar. Eles nunca usam o banco institucional. O build deve ser feito antes de `test:e2e`. Há capturas de teste em `/tmp/pops-desktop.png` e `/tmp/pops-mobile.png`; relatórios de falhas ficam em `test-results/`.
-
-## Evolução para Supabase, PostgreSQL ou Firebase
-
-O modelo `Pop` e as funções de persistência estão separados da interface. Para migrar:
-
-- Substitua `lib/db.ts` por consultas ao serviço escolhido e migre POPs, versões e usuários.
-- Use autenticação do provedor com papéis administradora/consulta e autorização também no servidor/banco (RLS no Supabase).
-- Migre PDFs de `lib/documents.ts` para um bucket privado, disponibilizando links assinados após autorização. Histórico e POPs inativos não devem liberar documentos antigos para integrantes.
-- Atualize sessões e o comando de criação da administradora. Não exponha chaves administrativas no navegador.
-- Teste permissões, upload, suspensão de usuários e persistência após reiniciar.
-
-Essa migração é uma etapa futura; SQLite e disco local já funcionam nesta versão.

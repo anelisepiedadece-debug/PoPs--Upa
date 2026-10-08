@@ -18,9 +18,9 @@ export default async function PopPage({
 }) {
   const user = await requireUser();
   const { id } = await params;
-  const p = getPop(id);
+  const p = await getPop(id);
   if (!p || (p.status === "inactive" && user.role !== "admin")) notFound();
-  const history = versions(id);
+  const history = user.role === "admin" ? await versions(id) : [];
   return (
     <div className="container page">
       <ViewCounter id={id} />

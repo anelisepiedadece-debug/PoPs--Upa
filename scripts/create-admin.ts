@@ -9,7 +9,7 @@ if (!password) {
   process.exit(1);
 }
 try {
-  createUser(
+  await createUser(
     process.env.ADMIN_NAME || "Anelise Piedade",
     email,
     password,

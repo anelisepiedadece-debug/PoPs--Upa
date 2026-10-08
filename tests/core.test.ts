@@ -8,7 +8,8 @@ import { categories, matches, type Pop } from "../lib/types.ts";
 const folder = mkdtempSync(path.join(tmpdir(), "pops-unit-"));
 process.env.POPS_DATA_DIR = folder;
 process.env.POPS_SEED_DEMO = "false";
-const store = await import("../lib/db.ts");
+process.env.POPS_BACKEND = "local";
+const store = await import("../lib/local-db.ts");
 const pdf = await import("../lib/documents.ts");
 const password = randomUUID() + randomUUID();
 test("Contas: hashes, sessões revogáveis, exclusividade da administradora e bloqueio de tentativas", () => {
@@ -113,8 +114,8 @@ test("PDFs: validação do conteúdo, limite e armazenamento privado", async () 
     /PDF válido/,
   );
   await assert.rejects(
-    pdf.storePdf(new File([new Uint8Array(15 * 1024 * 1024 + 1)], "large.pdf")),
-    /15 MB/,
+    pdf.storePdf(new File([new Uint8Array(3 * 1024 * 1024 + 1)], "large.pdf")),
+    /3 MB/,
   );
   const id = await pdf.storePdf(
     new File(["%PDF-1.4\n1 0 obj\n<<>>\nendobj\n%%EOF"], "ok.pdf"),

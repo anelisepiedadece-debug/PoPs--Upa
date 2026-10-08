@@ -30,7 +30,7 @@ export async function signIn(_: FormState, form: FormData): Promise<FormState> {
   if (email.length > 254 || password.length > 128 || !email || !password)
     return { error: "Informe usuário ou e-mail e senha válidos." };
   try {
-    token = login(email, password);
+    token = await login(email, password);
   } catch (e) {
     return { error: message(e) };
   }
@@ -52,11 +52,11 @@ export async function firstAccessAction(
   const password = String(form.get("password") || "");
   const confirmation = String(form.get("confirmation") || "");
   try {
-    initializeAdmin(code, password, confirmation);
+    await initializeAdmin(code, password, confirmation);
   } catch (e) {
     return { error: message(e) };
   }
-  const token = login(adminLogin, password);
+  const token = await login(adminLogin, password);
   (await cookies()).set("pops_session", token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
@@ -70,7 +70,7 @@ export async function firstAccessAction(
 export async function signOut() {
   const jar = await cookies();
   const token = jar.get("pops_session")?.value;
-  if (token) endSession(token);
+  if (token) await endSession(token);
   jar.delete("pops_session");
   redirect("/login");
 }
@@ -112,7 +112,7 @@ export async function savePopAction(
     if (data.updatedAt < data.createdAt)
       return { error: "A atualização não pode ser anterior à criação." };
     id = String(form.get("id") || "") || randomUUID();
-    const old = getPop(id);
+    const old = await getPop(id);
     if (form.get("id") && !old) return { error: "POP não encontrado." };
     const content: Record<string, string> = {};
     for (const section of sections) {
@@ -133,7 +133,7 @@ export async function savePopAction(
       isFeatured: form.get("isFeatured") === "on",
       demo: form.get("demo") === "on",
     };
-    savePop(pop);
+    await savePop(pop);
   } catch (e) {
     return { error: message(e) };
   }
@@ -146,7 +146,7 @@ export async function removePopAction(
 ): Promise<FormState> {
   await requireAdmin();
   const id = String(form.get("id") || "");
-  deletePop(id);
+  await deletePop(id);
   revalidatePath("/", "layout");
   return { success: "POP excluído do acervo." };
 }
@@ -167,7 +167,7 @@ export async function createMemberAction(
       error: "Informe nome, e-mail válido e senha entre 12 e 128 caracteres.",
     };
   try {
-    createUser(data.data.name, data.data.email, data.data.password);
+    await createUser(data.data.name, data.data.email, data.data.password);
   } catch {
     return {
       error:
@@ -182,7 +182,7 @@ export async function createMemberAction(
 }
 export async function toggleMemberAction(form: FormData) {
   await requireAdmin();
-  toggleMember(String(form.get("id")));
+  await toggleMember(String(form.get("id")));
   revalidatePath("/admin/equipe");
 }
 export async function resetPasswordAction(
@@ -191,7 +191,10 @@ export async function resetPasswordAction(
 ): Promise<FormState> {
   await requireAdmin();
   try {
-    resetMemberPassword(String(form.get("id")), String(form.get("password")));
+    await resetMemberPassword(
+      String(form.get("id")),
+      String(form.get("password")),
+    );
   } catch (e) {
     return { error: message(e) };
   }

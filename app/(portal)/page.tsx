@@ -21,7 +21,7 @@ import PopCard from "@/components/PopCard";
 import { QRCodeButton } from "@/components/Actions";
 export default async function Home() {
   const user = await requireUser();
-  const pops = listPops();
+  const pops = await listPops();
   const popular = [...pops]
     .sort(
       (a, b) =>

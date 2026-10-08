@@ -10,7 +10,7 @@ export default async function EditPopPage({
 }) {
   await requireAdmin();
   const { id } = await params;
-  const pop = getPop(id);
+  const pop = await getPop(id);
   if (!pop) notFound();
   return (
     <>

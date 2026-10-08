@@ -6,7 +6,7 @@ import { hasAdmin, setupAvailable } from "@/lib/setup";
 import { FirstAccessForm } from "@/components/Forms";
 export const dynamic = "force-dynamic";
 export default async function FirstAccessPage() {
-  if (hasAdmin())
+  if (await hasAdmin())
     redirect((await currentUser())?.role === "admin" ? "/admin" : "/login");
   return (
     <main id="main" className="setup-page">
@@ -28,7 +28,7 @@ export default async function FirstAccessPage() {
           Anelise, defina sua senha para gerenciar os POPs e liberar o acesso da
           equipe.
         </p>
-        {setupAvailable() ? (
+        {(await setupAvailable()) ? (
           <FirstAccessForm />
         ) : (
           <div className="institutional-notice">

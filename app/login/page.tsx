@@ -76,7 +76,7 @@ export default async function LoginPage() {
             Entre para acessar os procedimentos da unidade.
           </p>
           <LoginForm />
-          {setupAvailable() && (
+          {(await setupAvailable()) && (
             <Link href="/primeiro-acesso" className="first-access-link">
               Sou Anelise — configurar meu primeiro acesso
             </Link>

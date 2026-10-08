@@ -7,27 +7,29 @@ import { randomBytes } from "node:crypto";
 const folder = mkdtempSync(path.join(tmpdir(), "pops-bootstrap-"));
 process.env.POPS_DATA_DIR = folder;
 process.env.POPS_SEED_DEMO = "false";
+process.env.POPS_BACKEND = "local";
 const store = await import("../lib/db.ts");
+const local = await import("../lib/local-db.ts");
 const setup = await import("../lib/setup.ts");
-test("Primeiro acesso: exige código privado, valida senha, cria anelisepiedade e não permite segunda ativação", () => {
-  assert.equal(setup.setupAvailable(), false);
-  assert.throws(
+test("Primeiro acesso: exige código privado, valida senha, cria anelisepiedade e não permite segunda ativação", async () => {
+  assert.equal(await setup.setupAvailable(), false);
+  await assert.rejects(
     () => setup.initializeAdmin("invalid", "wrong", "wrong"),
     /não está disponível/,
   );
   process.env.ADMIN_SETUP_CODE = randomBytes(32).toString("hex");
   const password = randomBytes(24).toString("hex");
-  assert.equal(setup.setupAvailable(), true);
-  assert.throws(
+  assert.equal(await setup.setupAvailable(), true);
+  await assert.rejects(
     () => setup.initializeAdmin("invalid", password, password),
     /Código/,
   );
-  assert.throws(
+  await assert.rejects(
     () =>
       setup.initializeAdmin(process.env.ADMIN_SETUP_CODE!, "short", "short"),
     /12/,
   );
-  assert.throws(
+  await assert.rejects(
     () =>
       setup.initializeAdmin(
         process.env.ADMIN_SETUP_CODE!,
@@ -36,27 +38,32 @@ test("Primeiro acesso: exige código privado, valida senha, cria anelisepiedade 
       ),
     /iguais/,
   );
-  assert.equal(store.listUsers().length, 0);
+  assert.equal((await store.listUsers()).length, 0);
   for (let i = 0; i < 5; i++)
-    assert.throws(
+    await assert.rejects(
       () => store.login(setup.adminLogin, "invalid-password"),
       /incorretos/,
     );
-  setup.initializeAdmin(process.env.ADMIN_SETUP_CODE!, password, password);
-  assert.equal(setup.hasAdmin(), true);
-  assert.equal(setup.setupAvailable(), false);
+  await setup.initializeAdmin(
+    process.env.ADMIN_SETUP_CODE!,
+    password,
+    password,
+  );
+  assert.equal(await setup.hasAdmin(), true);
+  assert.equal(await setup.setupAvailable(), false);
   assert.equal(
-    store.sessionUser(store.login("ANELISEPIEDADE", password))?.role,
+    (await store.sessionUser(await store.login("ANELISEPIEDADE", password)))
+      ?.role,
     "admin",
   );
-  assert.throws(
+  await assert.rejects(
     () =>
       setup.initializeAdmin(process.env.ADMIN_SETUP_CODE!, password, password),
     /não está disponível/,
   );
-  assert.equal(store.listUsers().length, 1);
+  assert.equal((await store.listUsers()).length, 1);
 });
 process.on("exit", () => {
-  store.db().close();
+  local.db().close();
   rmSync(folder, { recursive: true, force: true });
 });

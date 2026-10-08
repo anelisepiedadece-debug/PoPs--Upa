@@ -6,6 +6,7 @@ import { spawnSync } from "node:child_process";
 const folder = mkdtempSync(path.join(tmpdir(), "pops-e2e-"));
 const env = {
   ...process.env,
+  POPS_BACKEND: "local",
   POPS_DATA_DIR: folder,
   POPS_E2E_DIR: folder,
   ADMIN_SETUP_CODE: randomBytes(32).toString("hex"),

@@ -12,8 +12,8 @@ import { listPops, listUsers } from "@/lib/db";
 import AdminHeader from "@/components/AdminHeader";
 export default async function AdminPage() {
   await requireAdmin();
-  const pops = listPops(true);
-  const users = listUsers();
+  const pops = await listPops(true);
+  const users = await listUsers();
   return (
     <>
       <AdminHeader

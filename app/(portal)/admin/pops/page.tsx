@@ -26,7 +26,7 @@ export default async function AdminPopsPage() {
             </tr>
           </thead>
           <tbody>
-            {listPops(true).map((p) => (
+            {(await listPops(true)).map((p) => (
               <tr key={p.id}>
                 <td>
                   <strong>{p.title}</strong>
@@ -65,7 +65,7 @@ export default async function AdminPopsPage() {
             ))}
           </tbody>
         </table>
-        {!listPops(true).length && <p>Nenhum POP cadastrado.</p>}
+        {!(await listPops(true)).length && <p>Nenhum POP cadastrado.</p>}
       </div>
     </>
   );

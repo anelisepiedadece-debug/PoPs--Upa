@@ -5,7 +5,7 @@ import CategoryCard from "@/components/CategoryCard";
 import { QRCodeButton } from "@/components/Actions";
 export default async function CategoriesPage() {
   await requireUser();
-  const pops = listPops();
+  const pops = await listPops();
   return (
     <div className="container page">
       <div className="page-heading">
